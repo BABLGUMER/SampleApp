@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SampleApp.API.Entities;
 using SampleApp.API.Interfaces;
@@ -18,7 +19,16 @@ public class UsersController : ControllerBase
     [HttpPost]
     public ActionResult CreateUser(User user)
     {
-        return Ok(_repo.CreateUser(user));
+        var validator = new Validations.UserValidator();
+        var result = validator.Validate(user);
+
+        if (!result.IsValid)
+        {
+            return BadRequest(result.Errors.First().ErrorMessage);
+        }
+
+        var createdUser = _repo.CreateUser(user);
+        return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
     }
 
     [HttpGet]
