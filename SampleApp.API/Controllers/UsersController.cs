@@ -9,7 +9,7 @@ namespace SampleApp.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserRepository _repo;
-    
+
     public UsersController(IUserRepository repo)
     {
         _repo = repo;
@@ -20,13 +20,13 @@ public class UsersController : ControllerBase
     {
         return Ok(_repo.CreateUser(user));
     }
-    
+
     [HttpGet]
     public ActionResult GetUsers()
     {
         return Ok(_repo.GetUsers());
     }
-    
+
     [HttpPut]
     public ActionResult UpdateUser(User user)
     {
