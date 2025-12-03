@@ -4,11 +4,20 @@ using SampleApp.API.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Добавляем контроллеры
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "AllowAngularApp",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod();
+        }
+    );
+});
+
 builder.Services.AddControllers();
 
-// Добавляем Swagger с настройками
-builder.Services.AddSwaggerGen(static c =>
+builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc(
         "v1",
@@ -21,7 +30,7 @@ builder.Services.AddSwaggerGen(static c =>
             {
                 Name = "zpa",
                 Email = "26ib233@git.scc",
-                Url = new Uri("http://stud.scc/~26ib233/"),
+                Url = new Uri("http://stud.scc/~26ib233"),
             },
         }
     );
@@ -32,8 +41,10 @@ builder.Services.AddSingleton<IRoleRepository, RoleMemoryRepository>();
 
 var app = builder.Build();
 
+app.UseCors("AllowAngularApp");
+
 app.UseSwagger();
-app.UseSwaggerUI(static c =>
+app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "SampleApp API v1");
     c.RoutePrefix = "swagger";
@@ -41,11 +52,5 @@ app.UseSwaggerUI(static c =>
 });
 
 app.MapControllers();
-
-app.MapGet("/", static () => "SampleApp API работает! Используйте /swagger для документации.");
-app.MapGet(
-    "/health",
-    static () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow })
-);
 
 app.Run();
