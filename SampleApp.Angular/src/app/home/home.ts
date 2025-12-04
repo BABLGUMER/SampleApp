@@ -7,10 +7,7 @@ import type User from '../../models/user.entity';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [
-    CommonModule, 
-    MatTableModule  // ВАЖНО: MatTableModule должен быть здесь
-  ],
+  imports: [CommonModule, MatTableModule],
   templateUrl: './home.html',
   styleUrl: './home.scss'
 })
@@ -27,3 +24,4 @@ export class HomeComponent implements OnInit {
     });
   }
 }
+
