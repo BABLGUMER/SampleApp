@@ -1,7 +1,10 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography;
+using System.Text;
+using SampleApp.API.Dto;
 using SampleApp.API.Entities;
 using SampleApp.API.Interfaces;
+using SampleApp.API.Validations;
 
 namespace SampleApp.API.Controllers;
 
@@ -10,21 +13,34 @@ namespace SampleApp.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserRepository _repo;
+    private readonly UserValidator _validator;
+    private readonly HMACSHA256 _hmac = new();
 
     public UsersController(IUserRepository repo)
     {
         _repo = repo;
+        _validator = new UserValidator();
     }
 
     [HttpPost]
-    public ActionResult CreateUser(User user)
+    public ActionResult CreateUser([FromBody] UserDto userDto)
     {
-        var validator = new Validations.UserValidator();
-        var result = validator.Validate(user);
-
-        if (!result.IsValid)
+        // Создаем пользователя из DTO
+        var user = new User
         {
-            return BadRequest(result.Errors.First().ErrorMessage);
+            Login = userDto.Login,
+            PasswordHash = _hmac.ComputeHash(Encoding.UTF8.GetBytes(userDto.Password)),
+            PasswordSalt = _hmac.Key,
+            Name = userDto.Name,
+            Email = userDto.Email,
+            Age = userDto.Age
+        };
+
+        // Валидация
+        var validationResult = _validator.Validate(user);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.Errors.First().ErrorMessage);
         }
 
         var createdUser = _repo.CreateUser(user);
@@ -37,10 +53,10 @@ public class UsersController : ControllerBase
         return Ok(_repo.GetUsers());
     }
 
-    [HttpPut]
-    public ActionResult UpdateUser(User user)
+    [HttpPut("{id}")]
+    public ActionResult UpdateUser(int id, [FromBody] User user)
     {
-        return Ok(_repo.EditUser(user, user.Id));
+        return Ok(_repo.EditUser(user, id));
     }
 
     [HttpGet("{id}")]

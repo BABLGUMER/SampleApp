@@ -1,27 +1,28 @@
 using FluentValidation;
 using SampleApp.API.Entities;
 
-namespace SampleApp.API.Validations;
-
-public class UserValidator : AbstractValidator<User>
+namespace SampleApp.API.Validations
 {
-    public UserValidator()
+    public class UserValidator : AbstractValidator<User>
     {
-        RuleFor(u => u.Name)
-            .NotEmpty()
-            .WithMessage("Имя обязательно")
-            .Length(2, 50)
-            .WithMessage("Имя должно быть от 2 до 50 символов")
-            .Must(StartsWithCapitalLetter)
-            .WithMessage("Имя должно начинаться с заглавной буквы");
+        public UserValidator()
+        {
+            RuleFor(x => x.Login)
+                .NotEmpty().WithMessage("Логин обязателен")
+                .MinimumLength(3).WithMessage("Логин должен быть не менее 3 символов")
+                .MaximumLength(50).WithMessage("Логин должен быть не более 50 символов");
 
-        RuleFor(u => u.Id).GreaterThan(0).WithMessage("ID должен быть положительным числом");
-    }
+            RuleFor(x => x.Name)
+                .NotEmpty().WithMessage("Имя обязательно")
+                .Length(2, 50).WithMessage("Имя должно быть от 2 до 50 символов");
 
-    private bool StartsWithCapitalLetter(string name)
-    {
-        if (string.IsNullOrEmpty(name))
-            return false;
-        return char.IsUpper(name[0]);
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Email обязателен")
+                .EmailAddress().WithMessage("Некорректный формат email");
+
+            RuleFor(x => x.Age)
+                .GreaterThan(0).WithMessage("Возраст должен быть больше 0")
+                .LessThan(150).WithMessage("Возраст должен быть меньше 150");
+        }
     }
 }
